@@ -58,5 +58,29 @@ new_population = numpy.random.randint(low=0, high=2, size=pop_shape)
 print(new_population.shape)
  
 best_outputs = []
-num_generations = 100
+num_generations = 100 #количество итераций (поколений)
+```
+
+```python
+for generation in range(num_generations):
+    print("Generation : ", generation)
+    # Рассчитываем приспособленность для каждой хромосомы в популяции
+    fitness = GA.cal_pop_fitness(new_population, data_inputs, data_outputs, train_indices, test_indices)
+
+    best_outputs.append(numpy.max(fitness))
+    # Точность классификации лучшего решения данной популяции.
+    print("Best result : ", best_outputs[-1])
+
+    # Выбор лучших родителей.
+    parents = GA.select_mating_pool(new_population, fitness, num_parents_mating)
+
+    # Генерация следующего поколения с помощью кроссовера.
+    offspring_crossover = GA.crossover(parents, offspring_size=(pop_shape[0]-parents.shape[0], num_feature_elements))
+
+    # Применение мутаций.
+    offspring_mutation = GA.mutation(offspring_crossover, num_mutations=num_mutations)
+
+    # Создание новой популяции, родители + потомство.
+    new_population[0:parents.shape[0], :] = parents
+    new_population[parents.shape[0]:, :] = offspring_mutation
 ```
