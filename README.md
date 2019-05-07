@@ -419,3 +419,20 @@ def splitAttribute(self, curData, curAttributes):
 						best_threshold = threshold
 	return (best_attribute,best_threshold,splitted)
 ```
+
+#### Результат
+
+
+petal width <= 0.8 : Iris-setosa
+petal width > 0.8 : 
+	petal length <= 4.75 : 
+		sepal length <= 4.95 : 
+			sepal width <= 2.45 : Iris-versicolor
+			sepal width > 2.45 : Iris-virginica
+		sepal length > 4.95 : Iris-versicolor
+	petal length > 4.75 : 
+		sepal length <= 7.0 : 
+			sepal width <= 3.25 : Iris-virginica
+			sepal width > 3.25 : Iris-virginica
+		sepal length > 7.0 : Iris-virginica
+		
