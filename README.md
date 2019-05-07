@@ -304,18 +304,25 @@ def buildTree(df,tree=None):
     return tree
 ```
 
-Полученное дерево
-
-{'Texture': {'0': {'Taste': {'1000': '1', '2000': '0', '3000': '1'}},
-
-             '1': {'Temperature': {'0': {'Taste': {'1000': '0',
-             
-                                                   '2000': '1',
-                                                   
-                                                   '3000': '1'}},
-                                                   
-                                   '1': '0'}}}}
-                                   
-Его же визуализация thru GraphViz
+Полученное дерево, визуализация thru GraphViz
 
 ![](tree1.png)
+
+Эта функция позволяет делать прогнозы для любых входных данных
+
+```python
+def predict(inst,tree):
+    for nodes in tree.keys():        
+        
+        value = inst[nodes]
+        tree = tree[nodes][value]
+        prediction = 0
+            
+        if type(tree) is dict:
+            prediction = predict(inst, tree)
+        else:
+            prediction = tree
+            break;                            
+        
+    return prediction
+```
