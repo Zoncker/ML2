@@ -235,3 +235,71 @@ $ dot -Tpng tree.dot -o tree.png
     
 ### Реализация
 
+Используя достаточно простой датасет для построения дерева:
+
+|   |       |             |         |     | 
+|---|-------|-------------|---------|-----| 
+|   | Taste | Temperature | Texture | Eat | 
+| 0 | 1000  | 1           | 1       | 0   | 
+| 1 | 2000  | 1           | 1       | 0   | 
+| 2 | 3000  | 1           | 0       | 1   | 
+| 3 | 2000  | 0           | 0       | 0   | 
+| 4 | 1000  | 1           | 0       | 1   | 
+| 5 | 3000  | 0           | 1       | 1   | 
+| 6 | 1000  | 0           | 1       | 0   | 
+| 7 | 3000  | 1           | 1       | 0   | 
+| 8 | 2000  | 0           | 1       | 1   | 
+| 9 | 1000  | 1           | 0       | 1   | 
+
+Этот же датасет в виде словаря, собираем из него датафрейм Pandas:
+```python
+dataset = {'Taste': ['1000', '2000', '3000', '2000', '1000', '3000', '1000', '3000', '2000', '1000'],
+           'Temperature': ['1', '1', '1', '0', '1', '0', '0', '1', '0', '1'],
+           'Texture': ['1', '1', '0', '0', '0', '1', '1', '1', '1', '0'],
+           'Eat': ['0', '0', '1', '0', '1', '1', '0', '0', '1', '1']}
+df = pd.DataFrame(dataset,columns=['Taste','Temperature','Texture','Eat'])
+```
+Мы определим функцию которая принимает класс (таргет-вектор) и находит энтропию этого класса. Фракция здесь - отношение кол-ва эл-тов на которое разбивается группа к кол-ву эл-тов в группе перед разделением(родительская группа) 
+
+```python
+def find_entropy(df):
+    Class = df.keys()[-1]   
+    entropy = 0
+    values = df[Class].unique()
+    for value in values:
+        fraction = df[Class].value_counts()[value]/len(df[Class])
+        entropy += -fraction*np.log2(fraction)
+    return entropy
+```
+Узлом "победителем" будет оный с максимальным приростом информации (IGain), повторяем процесс для поиска признака по которому мы будем разбивать данные в узлах. Функция ниже:
+```python
+def find_winner(df):
+    Entropy_att = []
+    IG = []
+    for key in df.keys()[:-1]:
+        IG.append(find_entropy(df)-find_entropy_attribute(df,key))
+    return df.keys()[:-1][np.argmax(IG)] 
+```
+Строим решающее дерево, оно строится рекурсивными вызовами этой функции. 
+```python
+def buildTree(df,tree=None): 
+    Class = df.keys()[-1]   #Получаем классы (0,1)
+    node = find_winner(df) #Получаем признак с максимальным IGain
+    attValue = np.unique(df[node]) #получаем различные значения этого признака
+    
+    if tree is None: #пустой словарь для самого дерева                 
+        tree={}
+        tree[node] = {}
+  
+    for value in attValue:
+        #Здесь мы проверяем "чистоту" подмножества и останавливаемся, если да
+        subtable = get_subtable(df,node,value)
+        clValue,counts = np.unique(subtable['Eat'],return_counts=True)                        
+        
+        if len(counts)==1:#Checking purity of subset
+            tree[node][value] = clValue[0]                                                    
+        else:        
+            tree[node][value] = buildTree(subtable) #рекурсивный колл
+                   
+    return tree
+```
