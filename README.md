@@ -327,7 +327,7 @@ def predict(inst,tree):
     return prediction
 ```
 
-## C4.5, the Great and Mighty
+## C4.5, the Great and the Mighty
 
 C4.5 является усовершенствованной версией алгоритма ID3 того же автора. В частности, в новую версию были добавлены отсечение ветвей (pruning), возможность работы с числовыми признаками, а также возможность построения дерева из неполной обучающей выборки, в которой отсутствуют значения некоторых признаками.
 
@@ -343,3 +343,33 @@ C4.5 является усовершенствованной версией ал
 
 
 ### Реализация
+
+"Усложняем" датасет используя ирисы Фишера.
+
+```python
+	def preprocessData(self):
+		for index,row in enumerate(self.data):
+			for attr_index in range(self.numAttributes): # итерируем по выборке (матрице объектов-признаков)
+				if(not self.isAttrDiscrete(self.attributes[attr_index])): # проверяем значения на дискретность
+					self.data[index][attr_index] = float(self.data[index][attr_index])
+```
+Метод рекурсивной генерации дерева
+```python
+	def recursiveGenerateTree(self, curData, curAttributes):
+		allSame = self.allSameClass(curData) #проверям на принадлежность всех элтов классу
+
+		if len(curData) == 0: #Fail
+			return Node(True, "Fail", None)
+		elif allSame is not False: #если одного класса
+			return Node(True, allSame, None) #возвращаем узел с этим классом
+		elif len(curAttributes) == 0:
+			majClass = self.getMajClass(curData) #возвращаем класс большинства
+			return Node(True, majClass, None)
+		else:
+			(best,best_threshold,splitted) = self.splitAttribute(curData, curAttributes)
+			remainingAttributes = curAttributes[:]
+			remainingAttributes.remove(best)
+			node = Node(False, best, best_threshold)
+			node.children = [self.recursiveGenerateTree(subset, remainingAttributes) for subset in splitted]
+			return node
+```            
