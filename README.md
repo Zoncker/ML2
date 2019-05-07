@@ -163,23 +163,6 @@ Selected indices :  [  1   3   4   5   9  11  12  13  22  24  25  26  27  31  32
 * В листьях: значения целевой функции
 - На рёбрах: значения признака, из которого исходит ребро
 
-```python
-from sklearn.datasets import load_iris
-from sklearn import tree
-
-clf = tree.DecisionTreeClassifier(max_depth=3, criterion="entropy")
-iris = load_iris()
-clf = clf.fit(iris.data, iris.target)
-tree.export_graphviz(clf, out_file='tree.dot', feature_names=iris.feature_names)
-```
-Небольшой пример обучения и визуализации решающего дерева с помощью sklearn и GraphViz.
-
-```bash
-$ dot -Tpng tree.dot -o tree.png 
-```
-Экспорт .dot объекта в .png-изображение выше.
-
-![](tree.png)
 
 Чтобы классифицировать новый объект, нужно спуститься по дереву до листа и выдать соответствующее значение
 
@@ -447,3 +430,21 @@ def splitAttribute(self, curData, curAttributes):
 				
 			sepal length > 7.0 : Iris-virginica
 
+
+```python
+from sklearn.datasets import load_iris
+from sklearn import tree
+
+clf = tree.DecisionTreeClassifier(max_depth=3, criterion="entropy")
+iris = load_iris()
+clf = clf.fit(iris.data, iris.target)
+tree.export_graphviz(clf, out_file='tree.dot', feature_names=iris.feature_names)
+```
+Небольшой пример обучения и визуализации решающего дерева с помощью sklearn и GraphViz.
+
+```bash
+$ dot -Tpng tree.dot -o tree.png 
+```
+Экспорт .dot объекта в .png-изображение выше.
+
+![](tree.png)
