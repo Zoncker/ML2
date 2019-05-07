@@ -347,29 +347,75 @@ C4.5 является усовершенствованной версией ал
 "Усложняем" датасет используя ирисы Фишера.
 
 ```python
-	def preprocessData(self):
-		for index,row in enumerate(self.data):
-			for attr_index in range(self.numAttributes): # итерируем по выборке (матрице объектов-признаков)
-				if(not self.isAttrDiscrete(self.attributes[attr_index])): # проверяем значения на дискретность
-					self.data[index][attr_index] = float(self.data[index][attr_index])
+def preprocessData(self):
+	for index,row in enumerate(self.data):
+		for attr_index in range(self.numAttributes): # итерируем по выборке (матрице объектов-признаков)
+			if(not self.isAttrDiscrete(self.attributes[attr_index])): # проверяем значения на дискретность
+				self.data[index][attr_index] = float(self.data[index][attr_index])
 ```
 Метод рекурсивной генерации дерева
 ```python
-	def recursiveGenerateTree(self, curData, curAttributes):
-		allSame = self.allSameClass(curData) #проверям на принадлежность всех элтов классу
+def recursiveGenerateTree(self, curData, curAttributes):
+	allSame = self.allSameClass(curData) #проверям на принадлежность всех элтов классу
 
-		if len(curData) == 0: #Fail
-			return Node(True, "Fail", None)
-		elif allSame is not False: #если одного класса
-			return Node(True, allSame, None) #возвращаем узел с этим классом
-		elif len(curAttributes) == 0:
-			majClass = self.getMajClass(curData) #возвращаем класс большинства
-			return Node(True, majClass, None)
-		else:
-			(best,best_threshold,splitted) = self.splitAttribute(curData, curAttributes)
-			remainingAttributes = curAttributes[:]
-			remainingAttributes.remove(best)
-			node = Node(False, best, best_threshold)
-			node.children = [self.recursiveGenerateTree(subset, remainingAttributes) for subset in splitted]
-			return node
-```            
+	if len(curData) == 0: #Fail
+		return Node(True, "Fail", None)
+	elif allSame is not False: #если одного класса
+		return Node(True, allSame, None) #возвращаем узел с этим классом
+	elif len(curAttributes) == 0:
+		majClass = self.getMajClass(curData) #возвращаем класс большинства
+		return Node(True, majClass, None)
+	else: #иначе разбиваем дальше
+		(best,best_threshold,splitted) = self.splitAttribute(curData, curAttributes)
+		remainingAttributes = curAttributes[:]
+		remainingAttributes.remove(best) #удаляем лучший признак
+		node = Node(False, best, best_threshold)
+		node.children = [self.recursiveGenerateTree(subset, remainingAttributes) for subset in splitted]
+		return node #рекурсивный колл от оставшихся признаков в подмножестве
+```   
+Основной метод (почти)
+```python
+def splitAttribute(self, curData, curAttributes):
+	splitted = []
+	maxEnt = -1*float("inf")
+	best_attribute = -1
+	#None для дискретных признаков, пороговое значение для непрерывных признаков
+	best_threshold = None
+	for attribute in curAttributes:
+		indexOfAttribute = self.attributes.index(attribute)
+		if self.isAttrDiscrete(attribute): 
+		#разбиваем curData в n подмн-в где n - кол-во разных значений признака 
+			valuesForAttribute = self.attrValues[attribute] 
+			subsets = [[] for a in valuesForAttribute]
+			for row in curData:
+				for index in range(len(valuesForAttribute)):
+					if row[i] == valuesForAttribute[index]:
+						subsets[index].append(row)
+						break
+			e = gain(curData, subsets)#выбираем признак с max IGain
+			if e > maxEnt:
+				maxEnt = e
+				splitted = subsets
+				best_attribute = attribute
+				best_threshold = None
+		else:  #сортируем данные согласно столбцам, после пробуем все возможные смежные пары
+		# выбираем тот, что даёт max IGain
+			curData.sort(key = lambda x: x[indexOfAttribute])
+			for j in range(0, len(curData) - 1):
+				if curData[j][indexOfAttribute] != curData[j+1][indexOfAttribute]:
+					threshold = (curData[j][indexOfAttribute] + curData[j+1][indexOfAttribute]) / 2
+					less = []
+					greater = []
+					for row in curData:
+						if(row[indexOfAttribute] > threshold):
+							greater.append(row)
+						else:
+							less.append(row)
+					e = self.gain(curData, [less, greater])
+					if e >= maxEnt:
+						splitted = [less, greater]
+						maxEnt = e
+						best_attribute = attribute
+						best_threshold = threshold
+	return (best_attribute,best_threshold,splitted)
+```
