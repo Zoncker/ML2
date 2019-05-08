@@ -470,6 +470,26 @@ $ dot -Tpng tree.dot -o tree.png
 
 ![](https://latex.codecogs.com/svg.latex?%5Cmu%20%5Cgeq%201) - вещественный параметр.
 
-Чем меньше ![](https://latex.codecogs.com/svg.latex?d) и ![](https://latex.codecogs.com/svg.latex?%5Cmu)
+Чем меньше ![](https://latex.codecogs.com/svg.latex?d) и ![](https://latex.codecogs.com/svg.latex?%5Cmu), тем сильнее сокращается перебор.
 
+Вход: множество ![](https://latex.codecogs.com/svg.latex?F), критерий ![](https://latex.codecogs.com/svg.latex?Q), параметры ![](https://latex.codecogs.com/svg.latex?d%2C%20%5Cmu)
 
+Нарастить (J)
+
+**если** найдётся ![](https://latex.codecogs.com/svg.latex?j%20%5Cleq%20%7Cd%7C%3A%20Q%28J%29%20%5Cgeq%20%5Cmu%20Q%5E*_j), то 
+
+выход
+
+![](https://latex.codecogs.com/svg.latex?Q%5E*_%7B%7CJ%7C%7D%3A%3D%5Cmin%5Cleft%20%5C%7B%20Q%5E*_%7B%7CJ%7C%7D%2CQ%28J%29%20%5Cright%20%5C%7D)
+
+![](https://latex.codecogs.com/svg.latex?%5Cforall%20f_s%20%5Cin%20F%3A%20s%3E%20%5Cmax%20%5Cleft%20%5C%7B%20t%7C%20f_t%20%5Cin%20J%20%5Cright%20%5C%7D)
+
+Инициализация массива лучших значений критерия:
+
+![](https://latex.codecogs.com/svg.latex?Q_j%5E*%3A%3DQ%28%5Cvarnothing%20%29%20%5Cforall%20j%20%3D%201%2C%5Cdots%2Cn)
+
+Упорядочить признаки по убыванию информативности
+
+Нарастить ![](https://latex.codecogs.com/svg.latex?%28%5Cvarnothing%20%29)
+
+Вернуть *J*, для которого ![](https://latex.codecogs.com/svg.latex?Q%28J%29%3D%20%5Cmin_%7Bj%3D1%2C%5Cdots%2C%20n%7D%20Q_j%5E*)
