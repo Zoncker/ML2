@@ -448,3 +448,28 @@ $ dot -Tpng tree.dot -o tree.png
 Экспорт .dot объекта в .png-изображение выше.
 
 ![](tree.png)
+
+
+
+
+## Метод поиска в глубину и ширину
+
+### DFS(Branch and bound)
+
+1. Нумерация признаков по возрастанию номеров —
+чтобы избежать повторов при переборе подмножеств
+2. если набор *J* бесперспективен, то больше не пытаться его наращивать.
+
+![](https://latex.codecogs.com/svg.latex?Q%5E*_j) - значение критерия на самом лучшем наборе мощности *j* из всех до сих пор просмотренных.
+
+Оценка бесперспективности набора признаков *J*: набор J не наращивается, если
+
+![](https://latex.codecogs.com/svg.latex?%5Cexists%20j%3A%20Q%28J%29%5Cgeq%5Cmu%20Q%5E*_j) и ![](https://latex.codecogs.com/svg.latex?%7CJ%7C%20%5Cgeq%20j%20&plus;%20d)
+
+![](https://latex.codecogs.com/svg.latex?d%20%5Cgeq%200) - целочисленный параметр, 
+
+![](https://latex.codecogs.com/svg.latex?%5Cmu%20%5Cgeq%201) - вещественный параметр.
+
+Чем меньше ![](https://latex.codecogs.com/svg.latex?d) и ![](https://latex.codecogs.com/svg.latex?%5Cmu)
+
+
