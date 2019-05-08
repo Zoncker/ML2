@@ -493,3 +493,59 @@ $ dot -Tpng tree.dot -o tree.png
 Нарастить ![](https://latex.codecogs.com/svg.latex?%28%5Cvarnothing%20%29)
 
 Вернуть *J*, для которого ![](https://latex.codecogs.com/svg.latex?Q%28J%29%3D%20%5Cmin_%7Bj%3D1%2C%5Cdots%2C%20n%7D%20Q_j%5E*)
+
+
+
+### BFS
+
+Он же многорядный итерационный алгоритм МГУА (МГУА — метод группового учёта аргументов)
+
+Философия — принцип неокончательных решений Габора:
+
+принимая решения, следует оставлять максимальную свободу выбора для принятия последующих решений.
+
+Усовершенствуем алгоритм Add:
+
+на каждой *j*-й итерации будем строить не один набор, а множество из ![](https://latex.codecogs.com/svg.latex?B_j) наборов, называемое *j*-м рядом:
+
+![](https://latex.codecogs.com/svg.latex?R_j%20%3D%20%5Cleft%20%5C%7B%20J_j%5E1%2C%5Cdots%2CJ_j%5E%7BB_j%7D%20%5Cright%20%5C%7D%2C%20J_j%5Eb%20%5Csubseteq%20F%2C%20%7CJ%5Eb_j%7C%3Dj%2C%20b%20%3D%201%2C%5Cdots%2CB_j)
+
+где ![](https://latex.codecogs.com/svg.latex?B_j%20%5Cleq%20B)
+
+Вход: множество *F*, критерий *Q*, параметры *d*, *B*
+
+первый ряд состоит из всех наборов длины 1:
+
+![](https://latex.codecogs.com/svg.latex?R_1%3A%3D%5Cleft%20%5C%7B%20%5Cleft%20%5C%7B%20f_1%20%5Cright%20%5C%7D%2C%5Cdots%2C%5Cleft%20%5C%7B%20f_n%20%5Cright%20%5C%7D%20%5Cright%20%5C%7D%3B%20Q%5E*%20%3D%20Q%28%5Cvarnothing%20%29%3B)
+
+![](https://latex.codecogs.com/svg.latex?%5Cforall%20j%3D1%2C%5Cdots%2Cn) где j - сложность наборов:
+
+отсортировать ряд ![](https://latex.codecogs.com/svg.latex?R_j%20%3D%20%5Cleft%20%5C%7B%20J_j%5E1%2C%5Cdots%2CJ_j%5E%7BB_j%7D%20%5Cright%20%5C%7D)
+
+по возрастанию критерия: ![](https://latex.codecogs.com/svg.latex?Q%28J_j%5E1%29%5Cleq%20%5Cdots%20%5Cleq%20Q%28J_j%5E%7BB_j%7D%29%3A)
+
+![](https://latex.codecogs.com/svg.latex?if%20B_j%20%3E%20B%20%5Crightarrow)
+
+![](https://latex.codecogs.com/svg.latex?R_j%3A%3D%5Cleft%20%5C%7B%20J_j%5E1%2C%5Cdots%2CJ_j%5EB%20%5Cright%20%5C%7D) - *B* лучших наборов ряда;
+
+![](https://latex.codecogs.com/svg.latex?if%20Q%28J_j%5E1%29%3CQ%5E*%20%5Crightarrow%20j%5E*%3A%3Dj%3B%20Q%5E*%3A%3DQ%28J_j%5E1%29%3B)
+
+![](https://latex.codecogs.com/svg.latex?if%20j-j%5E*%20%5Cgeq%20d%20%5Crightarrow%20J_%7Bj%5E*%7D%5E1%3B)
+
+породить следующий ряд:
+
+![](https://latex.codecogs.com/svg.latex?R_%7Bj&plus;1%7D%3A%3D%20%5Cleft%20%5C%7B%20J%5Ccup%20%5Cleft%20%5C%7B%20f%20%5Cright%20%5C%7D%20%7C%20J%20%5Cin%20R_j%2C%20f%20%5Cin%20FJ%20%5Cright%20%5C%7D%3B)
+
+Трудоёмкость:
+
+![](https://latex.codecogs.com/svg.latex?O%28Bn%5E2%29) точнее ![](https://latex.codecogs.com/svg.latex?O%28Bn%28j%5E*&plus;d%29%29)
+
+Проблема дубликатов:
+
+после сортировки (шаг 3) проверить на совпадение только соседние наборы с равными значениями внутреннего и внешнего критерия.
+
+Адаптивный отбор признаков:
+
+на шаге 8 добавлять к j-му ряду только признаки *f* с наибольшей информативностью  ![](https://latex.codecogs.com/svg.latex?l_j%28f%29%3A)
+
+![](https://latex.codecogs.com/svg.latex?l_j%28f%29%3D%5Csum_%7Bb%3D1%7D%5E%7BB_j%7D%5Cleft%20%5B%20f%20%5Cin%20%5Cright%20J_j%5Eb%20%5D)
