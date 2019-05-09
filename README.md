@@ -549,3 +549,18 @@ $ dot -Tpng tree.dot -o tree.png
 на шаге 8 добавлять к j-му ряду только признаки *f* с наибольшей информативностью  ![](https://latex.codecogs.com/svg.latex?l_j%28f%29%3A)
 
 ![](https://latex.codecogs.com/svg.latex?l_j%28f%29%3D%5Csum_%7Bb%3D1%7D%5E%7BB_j%7D%5Cleft%20%5B%20f%20%5Cin%20%5Cright%20J_j%5Eb%20%5D)
+
+
+### Exhaustive Feature Selection
+
+Вход: множество *F*, критерий *Q*, параметры *d*
+
+![](https://latex.codecogs.com/svg.latex?Q%5E*%3A%3DQ%28%20%5Cvarnothing%20%29) - инициализация
+
+![](https://latex.codecogs.com/svg.latex?%5Cforall%20j%20%3D%201%2C%5Cdots%2Cn), где *j* - сложность наборов
+
+найти лучший набор сложности *j*:
+
+![](https://latex.codecogs.com/svg.latex?J_j%3A%3D%5Carg%5Cmin_%7BJ%3A%7CJ%7C%3Dj%7D%20Q%28J%29)
+
+![](https://latex.codecogs.com/svg.latex?Q%28J_j%29%20%3C%20Q%5E*%5Crightarrow%20j%5E*%3A%3Dj%3B) ![](https://latex.codecogs.com/svg.latex?Q%5E*%3A%3DQ%28J_j%29)
