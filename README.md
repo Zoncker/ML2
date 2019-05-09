@@ -563,4 +563,21 @@ $ dot -Tpng tree.dot -o tree.png
 
 ![](https://latex.codecogs.com/svg.latex?J_j%3A%3D%5Carg%5Cmin_%7BJ%3A%7CJ%7C%3Dj%7D%20Q%28J%29)
 
-![](https://latex.codecogs.com/svg.latex?Q%28J_j%29%20%3C%20Q%5E*%5Crightarrow%20j%5E*%3A%3Dj%3B) ![](https://latex.codecogs.com/svg.latex?Q%5E*%3A%3DQ%28J_j%29)
+if ![](https://latex.codecogs.com/svg.latex?Q%28J_j%29%20%3C%20Q%5E*%5Crightarrow%20j%5E*%3A%3Dj%3B) ![](https://latex.codecogs.com/svg.latex?Q%5E*%3A%3DQ%28J_j%29)
+
+if ![](https://latex.codecogs.com/svg.latex?j-j%5E*%20%5Cgeq%20d) то вернуть ![](https://latex.codecogs.com/svg.latex?J_%7Bj%5E*%7D)
+
+Преимущества
+- простота реализации
+- гарантированный результат
+- полный перебор эффективен когда
+  - информативных признаков не много, ![](https://latex.codecogs.com/svg.latex?j%5E*%20%3C_%5Csim%205)
+  - всего признаков не много, ![](https://latex.codecogs.com/svg.latex?n%20%3C_%5Csim%2020..100)
+  
+Недостатки:
+- В остальных случаях ооочень долго - ![](https://latex.codecogs.com/svg.latex?O%282%5En%29)
+
+- чем больше перебирается вариантов, тем больше переобучение (особенно, если лучшие из вариантов существенно различны и одинаково плохи)
+
+Способы устранения
+-эвристические методы сокращённого перебора
