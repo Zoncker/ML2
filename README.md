@@ -443,7 +443,62 @@ def estimate(row,dtree):
 
 Вернуть *J*, для которого ![](https://latex.codecogs.com/svg.latex?Q%28J%29%3D%20%5Cmin_%7Bj%3D1%2C%5Cdots%2C%20n%7D%20Q_j%5E*)
 
+#### Реализация
 
+Всё те же ирисы, критерий - CV конкретного признака.
+```python
+def criterion_function(features):
+
+    X_train, X_test, y_train, y_test = train_test_split(iris.data[:, features],
+                                                        iris.target, test_size=0.4, random_state=0)
+    knn = KNeighborsClassifier(n_neighbors=3).fit(X_train, y_train)
+    result = cross_val_score(knn, iris.data[:, features], iris.target, cv=5)
+    return max(result)
+```
+Основной метод алгоритма:
+```python
+def branch_and_bound(root, D, d):
+    global flag
+    global J_max
+    global result_node
+
+    # Начальное вычисление критерия в корне
+    root.J = criterion_function(root.features)
+
+    # Не наращивать набор (ветвиться от этого узла) если J <= J_max
+    if flag == False and root.J <= J_max:
+        return
+
+    #Если это лист, обновить J_max, result_node и выйти
+    if root.level == D - d:
+        if flag == True:
+            J_max = root.J
+            flag = False
+            result_node = root
+
+        elif root.J > J_max:
+            J_max = root.J
+            result_node = root
+
+        return
+```
+Считаем количество ветвей этого узла
+```python
+    no_of_branches = (d + 1) - len(root.preserved_features)
+
+    # Генерим эти ветви
+    branch_feature_values = sorted(
+        random.sample(list(set(root.features) - set(root.preserved_features)), no_of_branches))
+
+    #Итерируем по ветвям, и для каждой ветви рекурсивно коллим метод
+    for i, branch_value in enumerate(branch_feature_values):
+        child = tree_node(branch_value, [value for value in root.features if value != branch_value], \
+                          root.preserved_features + branch_feature_values[i + 1:], root.level + 1)
+
+        root.children.append(child)
+
+        branch_and_bound(child, D, d)
+```
 
 ### BFS
 
