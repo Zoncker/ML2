@@ -398,12 +398,7 @@ def estimate(row,dtree):
 ![](C4.5-0.6.png)
 
 ### Сравнение
-<body>
-	<frameset rows="100%">
-		<frame src="accuracy.html"></frame>
-	</frameset>
-</body>
-
+[Сравнение тут, спасибо GithubPages за хост](https://zoncker.github.io/ML2/ "asd")
 
 
 ## Метод поиска в глубину и ширину
