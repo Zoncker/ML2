@@ -218,97 +218,119 @@ Selected indices :  [  1   3   4   5   9  11  12  13  22  24  25  26  27  31  32
     
 ### Реализация
 
-Используя достаточно простой датасет для построения дерева:
+Был взят датасет German Credit, 1000 элементов, признаков 20 (7 numerical, 13 categorical)
 
-|   |       |             |         |     | 
-|---|-------|-------------|---------|-----| 
-|   | Taste | Temperature | Texture | Eat | 
-| 0 | 1000  | 1           | 1       | 0   | 
-| 1 | 2000  | 1           | 1       | 0   | 
-| 2 | 3000  | 1           | 0       | 1   | 
-| 3 | 2000  | 0           | 0       | 0   | 
-| 4 | 1000  | 1           | 0       | 1   | 
-| 5 | 3000  | 0           | 1       | 1   | 
-| 6 | 1000  | 0           | 1       | 0   | 
-| 7 | 3000  | 1           | 1       | 0   | 
-| 8 | 2000  | 0           | 1       | 1   | 
-| 9 | 1000  | 1           | 0       | 1   | 
+Attribute 1:  (qualitative)
+	       Status of existing checking account
+               A11 :      ... <    0 DM
+	       A12 : 0 <= ... <  200 DM
+	       A13 :      ... >= 200 DM /
+		     salary assignments for at least 1 year
+               A14 : no checking account
 
-Этот же датасет в виде словаря, собираем из него датафрейм Pandas:
-```python
-dataset = {'Taste': ['1000', '2000', '3000', '2000', '1000', '3000', '1000', '3000', '2000', '1000'],
-           'Temperature': ['1', '1', '1', '0', '1', '0', '0', '1', '0', '1'],
-           'Texture': ['1', '1', '0', '0', '0', '1', '1', '1', '1', '0'],
-           'Eat': ['0', '0', '1', '0', '1', '1', '0', '0', '1', '1']}
-df = pd.DataFrame(dataset,columns=['Taste','Temperature','Texture','Eat'])
-```
-Мы определим функцию которая принимает класс (таргет-вектор) и находит энтропию этого класса. Фракция здесь - отношение кол-ва эл-тов на которое разбивается группа к кол-ву эл-тов в группе перед разделением(родительская группа) 
+Attribute 2:  (numerical)
+	      Duration in month
 
-```python
-def find_entropy(df):
-    Class = df.keys()[-1]   
-    entropy = 0
-    values = df[Class].unique()
-    for value in values:
-        fraction = df[Class].value_counts()[value]/len(df[Class])
-        entropy += -fraction*np.log2(fraction)
-    return entropy
-```
+Attribute 3:  (qualitative)
+	      Credit history
+	      A30 : no credits taken/
+		    all credits paid back duly
+              A31 : all credits at this bank paid back duly
+	      A32 : existing credits paid back duly till now
+              A33 : delay in paying off in the past
+	      A34 : critical account/
+		    other credits existing (not at this bank)
+
+Attribute 4:  (qualitative)
+	      Purpose
+	      A40 : car (new)
+	      A41 : car (used)
+	      A42 : furniture/equipment
+	      A43 : radio/television
+	      A44 : domestic appliances
+	      A45 : repairs
+	      A46 : education
+	      A47 : (vacation - does not exist?)
+	      A48 : retraining
+	      A49 : business
+	      A410 : others
+
+|                                     |                   |                |         |               |                       |                          |                                                     |                         |                            |                         |          |              |                         |         |                                         |      |                                                          |           |                |        | 
+|-------------------------------------|-------------------|----------------|---------|---------------|-----------------------|--------------------------|-----------------------------------------------------|-------------------------|----------------------------|-------------------------|----------|--------------|-------------------------|---------|-----------------------------------------|------|----------------------------------------------------------|-----------|----------------|--------| 
+| Status of existing checking account | Duration in month | Credit history | Purpose | Credit amount | Savings account/bonds | Present employment since | Installment rate in percentage of disposable income | Personal status and sex | Other debtors / guarantors | Present residence since | Property | Age in years | Other installment plans | Housing | Number of existing credits at this bank | Job  | Number of people being liable to provide maintenance for | Telephone | foreign worker | target | 
+| A11                                 | 6                 | A34            | A43     | 1169          | A65                   | A75                      | 4                                                   | A93                     | A101                       | 4                       | A121     | 67           | A143                    | A152    | 2                                       | A173 | 1                                                        | A192      | A201           | 1      | 
+| A12                                 | 48                | A32            | A43     | 5951          | A61                   | A73                      | 2                                                   | A92                     | A101                       | 2                       | A121     | 22           | A143                    | A152    | 1                                       | A173 | 1                                                        | A191      | A201           | 2      | 
+| A14                                 | 12                | A34            | A46     | 2096          | A61                   | A74                      | 2                                                   | A93                     | A101                       | 3                       | A121     | 49           | A143                    | A152    | 1                                       | A172 | 2                                                        | A191      | A201           | 1      | 
+| A11                                 | 42                | A32            | A42     | 7882          | A61                   | A74                      | 2                                                   | A93                     | A103                       | 4                       | A122     |
+
+
 Узлом "победителем" будет оный с максимальным приростом информации (IGain), повторяем процесс для поиска признака по которому мы будем разбивать данные в узлах. Функция ниже:
 ```python
-def find_winner(df):
-    Entropy_att = []
-    IG = []
-    for key in df.keys()[:-1]:
-        IG.append(find_entropy(df)-find_entropy_attribute(df,key))
-    return df.keys()[:-1][np.argmax(IG)] 
+def ID3(data):
+	splitting_attribute = None
+	split_point = None
+	max_gain = 0.0
+	info_d = globalFunc.calculate_info_d(data['target'])
+	
+	for attribute in data.columns:
+		if attribute != 'target' and len(data[attribute].unique()) > 1:
+			gain, temp_split_point = globalFunc.calculate_information_gain(data, attribute, info_d)
+			if gain > max_gain:
+				max_gain = gain
+				splitting_attribute = attribute
+				split_point = temp_split_point
+	return splitting_attribute, split_point
 ```
-Строим решающее дерево, оно строится рекурсивными вызовами этой функции. 
+Небольшой препроцессинг данных
 ```python
-def buildTree(df,tree=None): 
-    Class = df.keys()[-1]   #Получаем классы (0,1)
-    node = find_winner(df) #Получаем признак с максимальным IGain
-    attValue = np.unique(df[node]) #получаем различные значения этого признака
-    
-    if tree is None: #пустой словарь для самого дерева                 
-        tree={}
-        tree[node] = {}
-  
-    for value in attValue:
-        #Здесь мы проверяем "чистоту" подмножества и останавливаемся, если да
-        subtable = get_subtable(df,node,value)
-        clValue,counts = np.unique(subtable['Eat'],return_counts=True)                        
-        
-        if len(counts)==1:#Checking purity of subset
-            tree[node][value] = clValue[0]                                                    
-        else:        
-            tree[node][value] = buildTree(subtable) #рекурсивный колл
-                   
-    return tree
+def preprocess(data):
+	for column in data.columns:
+		if len(data[column].unique()) <= 13:
+			data[column] = data[column].astype(object)
+	equiv = {1: 'good', 2: 'bad'}
+	data['target'] = data['target'].map(equiv)
+	return data
 ```
-
-Полученное дерево, визуализация thru GraphViz
-
-![](tree1.png)
-
-Эта функция позволяет делать прогнозы для любых входных данных
+Считаем IGain
 
 ```python
-def predict(inst,tree):
-    for nodes in tree.keys():        
-        
-        value = inst[nodes]
-        tree = tree[nodes][value]
-        prediction = 0
-            
-        if type(tree) is dict:
-            prediction = predict(inst, tree)
-        else:
-            prediction = tree
-            break;                            
-        
-    return prediction
+def calculate_information_gain(data, attribute, info_d):
+	attr_type = str(data[attribute].dtype)
+	if attr_type.find('int') != -1 or attr_type.find('float') != -1:
+		info_attribute_d, split_point = info_d_for_continuous_attribute(data, attribute)
+		gain = info_d - info_attribute_d
+		return gain, split_point
+	else:
+		info_attribute_d = info_d_for_nominal_attributes(data,attribute)
+		gain = info_d - info_attribute_d
+		return gain,None
 ```
+
+Метод генерации самого дерева
+```python
+## Присваиваем лучший разбиваемый атрибут текущему узлу
+root.data = splitting_attribute
+if split_point == None:
+	values = data[splitting_attribute].unique()
+
+	## разбиваем данные на все возможные значения разделяемого атрибута и рекурсивно индуцируем дерево 
+	for value in values:
+		root.link_name.append(value)
+		root.link.append(self.create_tree(data[data[splitting_attribute] == value].drop([splitting_attribute],1),algo))
+
+else:
+	root.split_point = split_point
+	root.link_name.append(' A <=' + str(split_point))
+	root.link.append(self.create_tree(data[data[splitting_attribute] <= split_point].drop([splitting_attribute],1),algo))
+	root.link_name.append('A > '+ str(split_point))
+	root.link.append(self.create_tree(data[data[splitting_attribute] >  split_point].drop([splitting_attribute],1),algo))
+return root
+
+```
+Полученное дерево при фракции обучающих данных в 60%, визуализация thru GraphViz
+
+![](ID3-0.6.png)
+
 
 ## C4.5, the Great and the Mighty
 
@@ -327,128 +349,60 @@ C4.5 является усовершенствованной версией ал
 
 ### Реализация
 
-"Усложняем" датасет используя ирисы Фишера.
+Собственно, для анализа и сравнения двух алгоритмов использовался один и тот же датасет.
+Сам метод алгоритма C4.5:
 
 ```python
-def preprocessData(self):
-	for index,row in enumerate(self.data):
-		for attr_index in range(self.numAttributes): # итерируем по выборке (матрице объектов-признаков)
-			if(not self.isAttrDiscrete(self.attributes[attr_index])): # проверяем значения на дискретность
-				self.data[index][attr_index] = float(self.data[index][attr_index])
+def C45(data):
+	splitting_attribute = None
+	max_gain_ratio = 0.0
+	split_point = None
+	info_d = globalFunc.calculate_info_d(data['target'])
+	for attribute in data.columns:
+		if attribute != 'target' and len(data[attribute].unique()) > 1:
+			gain_ratio, temp_split_point = globalFunc.calculate_gain_ratio(data, attribute, info_d)
+			if gain_ratio > max_gain_ratio:
+				max_gain_ratio = gain_ratio
+				splitting_attribute = attribute
+				split_point = temp_split_point
+	return splitting_attribute, split_point
 ```
-Метод рекурсивной генерации дерева
+Считаем процент IGain
 ```python
-def recursiveGenerateTree(self, curData, curAttributes):
-	allSame = self.allSameClass(curData) #проверям на принадлежность всех элтов классу
-
-	if len(curData) == 0: #Fail
-		return Node(True, "Fail", None)
-	elif allSame is not False: #если одного класса
-		return Node(True, allSame, None) #возвращаем узел с этим классом
-	elif len(curAttributes) == 0:
-		majClass = self.getMajClass(curData) #возвращаем класс большинства
-		return Node(True, majClass, None)
-	else: #иначе разбиваем дальше
-		(best,best_threshold,splitted) = self.splitAttribute(curData, curAttributes)
-		remainingAttributes = curAttributes[:]
-		remainingAttributes.remove(best) #удаляем лучший признак
-		node = Node(False, best, best_threshold)
-		node.children = [self.recursiveGenerateTree(subset, remainingAttributes) for subset in splitted]
-		return node #рекурсивный колл от оставшихся признаков в подмножестве
+def calculate_gain_ratio(data, attribute, info_d):
+	gain, split_point = calculate_information_gain(data, attribute, info_d)
+	split_info = calculate_split_info(data, attribute)
+	gain_ratio = gain / split_info
+	return gain_ratio, split_point
+```
+Сам общий эстимейтор
+```python
+def estimate(row,dtree):
+	if len(dtree.link) == 0:
+		return dtree.data
+	for (ln,l) in zip(dtree.link_name,dtree.link):
+		if dtree.split_point != None:
+			if row[dtree.data] <= dtree.split_point and str(ln).find('<') != -1:
+				return estimate(row,l)
+			elif row[dtree.data] > dtree.split_point and str(ln).find('>') != -1:
+				return estimate(row,l)
+		elif row[dtree.data] == ln:
+			return estimate(row,l)
 ```   
 Основной метод (почти)
-```python
-def splitAttribute(self, curData, curAttributes):
-	splitted = []
-	maxEnt = -1*float("inf")
-	best_attribute = -1
-	#None для дискретных признаков, пороговое значение для непрерывных признаков
-	best_threshold = None
-	for attribute in curAttributes:
-		indexOfAttribute = self.attributes.index(attribute)
-		if self.isAttrDiscrete(attribute): 
-		#разбиваем curData в n подмн-в где n - кол-во разных значений признака 
-			valuesForAttribute = self.attrValues[attribute] 
-			subsets = [[] for a in valuesForAttribute]
-			for row in curData:
-				for index in range(len(valuesForAttribute)):
-					if row[i] == valuesForAttribute[index]:
-						subsets[index].append(row)
-						break
-			e = gain(curData, subsets)#выбираем признак с max IGain
-			if e > maxEnt:
-				maxEnt = e
-				splitted = subsets
-				best_attribute = attribute
-				best_threshold = None
-		else:  #сортируем данные согласно столбцам, после пробуем все возможные смежные пары
-		# выбираем тот, что даёт max IGain
-			curData.sort(key = lambda x: x[indexOfAttribute])
-			for j in range(0, len(curData) - 1):
-				if curData[j][indexOfAttribute] != curData[j+1][indexOfAttribute]:
-					threshold = (curData[j][indexOfAttribute] + curData[j+1][indexOfAttribute]) / 2
-					less = []
-					greater = []
-					for row in curData:
-						if(row[indexOfAttribute] > threshold):
-							greater.append(row)
-						else:
-							less.append(row)
-					e = self.gain(curData, [less, greater])
-					if e >= maxEnt:
-						splitted = [less, greater]
-						maxEnt = e
-						best_attribute = attribute
-						best_threshold = threshold
-	return (best_attribute,best_threshold,splitted)
-```
 
 #### Результат
 
+Визуализация аналогична ID3, деревья получились большие...
 
-	petal width <= 0.8 : Iris-setosa
+![](C4.5-0.6.png)
 
-	petal width > 0.8 : 
-
-		petal length <= 4.75 : 
-
-			sepal length <= 4.95 : 
-
-				sepal width <= 2.45 : Iris-versicolor
-
-				sepal width > 2.45 : Iris-virginica
-
-			sepal length > 4.95 : Iris-versicolor
-
-		petal length > 4.75 : 
-
-			sepal length <= 7.0 : 
-			
-				sepal width <= 3.25 : Iris-virginica
-				
-				sepal width > 3.25 : Iris-virginica
-				
-			sepal length > 7.0 : Iris-virginica
-
-
-```python
-from sklearn.datasets import load_iris
-from sklearn import tree
-
-clf = tree.DecisionTreeClassifier(max_depth=3, criterion="entropy")
-iris = load_iris()
-clf = clf.fit(iris.data, iris.target)
-tree.export_graphviz(clf, out_file='tree.dot', feature_names=iris.feature_names)
-```
-Небольшой пример обучения и визуализации решающего дерева с помощью sklearn и GraphViz.
-
-```bash
-$ dot -Tpng tree.dot -o tree.png 
-```
-Экспорт .dot объекта в .png-изображение выше.
-
-![](tree.png)
-
+### Сравнение
+<body>
+	<frameset rows="100%">
+		<frame src="accuracy.html"></frame>
+	</frameset>
+</body>
 
 
 
@@ -581,13 +535,3 @@ if ![](https://latex.codecogs.com/svg.latex?j-j%5E*%20%5Cgeq%20d) то верн�
 
 Способы устранения
 -эвристические методы сокращённого перебора
-
-
-
-|                                     |                   |                |         |               |                       |                          |                                                     |                         |                            |                         |          |              |                         |         |                                         |      |                                                          |           |                |        | 
-|-------------------------------------|-------------------|----------------|---------|---------------|-----------------------|--------------------------|-----------------------------------------------------|-------------------------|----------------------------|-------------------------|----------|--------------|-------------------------|---------|-----------------------------------------|------|----------------------------------------------------------|-----------|----------------|--------| 
-| Status of existing checking account | Duration in month | Credit history | Purpose | Credit amount | Savings account/bonds | Present employment since | Installment rate in percentage of disposable income | Personal status and sex | Other debtors / guarantors | Present residence since | Property | Age in years | Other installment plans | Housing | Number of existing credits at this bank | Job  | Number of people being liable to provide maintenance for | Telephone | foreign worker | target | 
-| A11                                 | 6                 | A34            | A43     | 1169          | A65                   | A75                      | 4                                                   | A93                     | A101                       | 4                       | A121     | 67           | A143                    | A152    | 2                                       | A173 | 1                                                        | A192      | A201           | 1      | 
-| A12                                 | 48                | A32            | A43     | 5951          | A61                   | A73                      | 2                                                   | A92                     | A101                       | 2                       | A121     | 22           | A143                    | A152    | 1                                       | A173 | 1                                                        | A191      | A201           | 2      | 
-| A14                                 | 12                | A34            | A46     | 2096          | A61                   | A74                      | 2                                                   | A93                     | A101                       | 3                       | A121     | 49           | A143                    | A152    | 1                                       | A172 | 2                                                        | A191      | A201           | 1      | 
-| A11                                 | 42                | A32            | A42     | 7882          | A61                   | A74                      | 2                                                   | A93                     | A103                       | 4                       | A122     |
