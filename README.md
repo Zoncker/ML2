@@ -499,6 +499,32 @@ def branch_and_bound(root, D, d):
 
         branch_and_bound(child, D, d)
 ```
+Собственно, отрисовка дерева
+```python
+def display_tree(node, dot_object, parent_index):
+    iris = datasets.load_iris()
+    for i in node.features:
+        node.name.append(iris.feature_names[i])
+
+    #Создать узел в дереве
+    dot_object.node(str(node.index),
+                    "Features = " + str(node.name) + "\nJ(Features) = " + str(node.J) + "\nPreserved = " + str(
+                        node.preserved_features))
+
+    #Если не корень, то создать ветвь к родителю
+    if node.index != -1:
+        dot_object.edge(str(parent_index), str(node.index), label=str(node.branch_value))
+
+    # базовый случай, когда у узла нет потомков, выйти 
+    if len(node.children) == 0:
+        return
+
+    # рекурсивный колл метода для всех потомков этого узла
+    for child in reversed(node.children):
+        display_tree(child, dot_object, node.index)
+```
+
+![](bb_tree.png)
 
 ### BFS
 
