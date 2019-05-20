@@ -609,5 +609,83 @@ if ![](https://latex.codecogs.com/svg.latex?j-j%5E*%20%5Cgeq%20d) то верн�
 
 - чем больше перебирается вариантов, тем больше переобучение (особенно, если лучшие из вариантов существенно различны и одинаково плохи)
 
-Способы устранения
--эвристические методы сокращённого перебора
+### Реализация
+
+***Irises, irises never change.***
+
+Собсна, нашим критерий - скоринг точности CV на KNN.
+```python
+def _calc_score(selector, X, y, indices, **fit_params):
+    if selector.cv:
+        scores = cross_val_score(selector.est_,
+                                 X[:, indices], y,
+                                 cv=selector.cv,
+                                 scoring=selector.scorer,
+                                 n_jobs=1,
+                                 pre_dispatch=selector.pre_dispatch,
+                                 fit_params=fit_params)
+    else:
+        selector.est_.fit(X[:, indices], y, **fit_params)
+        scores = np.array([selector.scorer(selector.est_, X[:, indices], y)])
+    return indices, scores
+```
+Количество комбинаций признаков длины r из n.
+```python
+r = min(r, n-r)
+if r == 0:
+return 1
+numer = reduce(op.mul, range(n, n-r, -1))
+denom = reduce(op.mul, range(1, r+1))
+return numer//denom
+
+all_comb = np.sum([ncr(n=X_.shape[1], r=i)
+		   for i in range(self.min_features,
+				  self.max_features + 1)])
+```
+Производим отбор признаков и обучение модели на выборке
+```python
+candidates = chain(*((combinations(range(X_.shape[1]), r=i))
+		   for i in range(self.min_features,
+				  self.max_features + 1)))
+self.subsets_[iteration] = {'feature_idx': c,
+			    'cv_scores': cv_scores,
+			    'avg_score': np.mean(cv_scores)}
+
+max_score = float('-inf')
+for c in self.subsets_:
+    if self.subsets_[c]['avg_score'] > max_score:
+	max_score = self.subsets_[c]['avg_score']
+	best_subset = c
+score = max_score
+idx = self.subsets_[best_subset]['feature_idx']
+
+self.best_idx_ = idx
+self.best_score_ = score
+self.fitted = True
+self.subsets_, self.best_feature_names_ = \
+    _get_featurenames(self.subsets_,
+		      self.best_idx_,
+		      custom_feature_names,
+		      X)
+```
+Получаем словарь где каждое значение - список с кол-вом итераций (кол-во подвыборок признаков) как его длины. Ключи словаря соответствуют спискам.
+```python
+    def get_metric_dict(self, confidence_interval=0.95):
+        fdict = deepcopy(self.subsets_)
+        for k in fdict:
+            std_dev = np.std(self.subsets_[k]['cv_scores'])
+            bound, std_err = self._calc_confidence(
+                self.subsets_[k]['cv_scores'],
+                confidence=confidence_interval)
+            fdict[k]['ci_bound'] = bound
+            fdict[k]['std_dev'] = std_dev
+            fdict[k]['std_err'] = std_err
+        return fdict
+
+    def _calc_confidence(self, ary, confidence=0.95):
+        std_err = scipy.stats.sem(ary)
+        bound = std_err * sp.stats.t._ppf((1 + confidence) / 2.0, len(ary))
+        return bound, std_err
+```
+
+![](efs.png)
