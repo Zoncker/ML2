@@ -689,3 +689,7 @@ self.subsets_, self.best_feature_names_ = \
 ```
 
 ![](efs.png)
+
+Best accuracy score: 0.97
+Best subset (indices): (0, 2, 3)
+Best subset (corresponding names): ('sepal length', 'petal length', 'petal width')
