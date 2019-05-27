@@ -41,13 +41,67 @@ AdaBoost вызывает слабый классификатор в цикле.
 
 1. Инициализация весов объектов: ![](https://latex.codecogs.com/svg.latex?%5Cw_i%20%3D%201/l%2C%20i%20%3D%201%2C%5Cdots%2C%20l%3B)
 2. Для всех ![](https://latex.codecogs.com/svg.latex?t%3D1%2C%5Cdots%2C%20T%2C) пока не выполнен критерий останова.
-    2.1 Находим классификатор ![](https://latex.codecogs.com/svg.latex?b_%7Bt%7D%3A%20X%20%5Cto%20%5C%7B-1%2C&plus;1%5C%7D) который минимизирует взвешенную ошибку классификации;
+
+2.1 Находим классификатор ![](https://latex.codecogs.com/svg.latex?b_%7Bt%7D%3A%20X%20%5Cto%20%5C%7B-1%2C&plus;1%5C%7D) который минимизирует взвешенную ошибку классификации;
 ![](https://latex.codecogs.com/svg.latex?b_t%20%3D%20%5Carg%20%5Cmin_b%20Q%28b%2CW%5El%29%3B)
-    2.2 Пересчитываем кооэффициент взвешенного голосования для алгоритма классификации ![](https://latex.codecogs.com/svg.latex?b_t):
-       ![](https://latex.codecogs.com/svg.latex?%5Calpha_t%20%3D%20%5Cfrac%7B1%7D%7B2%7D%20%5Cln%5Cfrac%7B1%20-%20Q%28b%2CW%5El%29%7D%7BQ%28b%2CW%5El%29%7D%3B)
-    2.3 Пересчет весов объектов: ![](https://latex.codecogs.com/svg.latex?w_i%20%3D%20w_i%20%5Cexp%7B%28-%5Calpha_t%20y_i%20b_t%28x_i%29%29%7D%2C%20i%20%3D%201%2C%5Cdots%2C%20l);
-    2.4 Нормировка весов объектов: ![](https://latex.codecogs.com/svg.latex?w_0%20%3D%20%5Csum_%7Bj%3D1%7D%5E%7Bl%7Dw_j%3B%20w_i%20%3D%20w_i/w_0%2C%20i%20%3D%201%2C%5Cdots%2C%20l);
+
+2.2 Пересчитываем кооэффициент взвешенного голосования для алгоритма классификации ![](https://latex.codecogs.com/svg.latex?b_t):
+    
+![](https://latex.codecogs.com/svg.latex?%5Calpha_t%20%3D%20%5Cfrac%7B1%7D%7B2%7D%20%5Cln%5Cfrac%7B1%20-%20Q%28b%2CW%5El%29%7D%7BQ%28b%2CW%5El%29%7D%3B)
+
+2.3 Пересчет весов объектов: ![](https://latex.codecogs.com/svg.latex?w_i%20%3D%20w_i%20%5Cexp%7B%28-%5Calpha_t%20y_i%20b_t%28x_i%29%29%7D%2C%20i%20%3D%201%2C%5Cdots%2C%20l);
+
+2.4 Нормировка весов объектов: ![](https://latex.codecogs.com/svg.latex?w_0%20%3D%20%5Csum_%7Bj%3D1%7D%5E%7Bl%7Dw_j%3B%20w_i%20%3D%20w_i/w_0%2C%20i%20%3D%201%2C%5Cdots%2C%20l);
+
 4. Возвращаем ![](https://latex.codecogs.com/svg.latex?a%28x%29%20%3D%20sign%20%5Cleft%28%5Csum_%7Bi%3D1%7D%5E%7BT%7D%20%5Calpha_i%20b_i%28x%29%5Cright%29):
+
+### Реализация
+
+```python
+def AdaBoost(X, y, M=10, learning_rate=1):
+    # инициализация утиль списков
+    N = len(y)
+    estimator_list, y_predict_list, estimator_error_list, estimator_weight_list, sample_weight_list = [], [], [], [], []
+    # инициализация весов
+    sample_weight = np.ones(N) / N
+    sample_weight_list.append(sample_weight.copy())
+
+    # For m = 1 to M
+    for m in range(M):
+        # Обучаем слабый классификатор
+        estimator = DecisionTreeClassifier(max_depth=1, max_leaf_nodes=2)
+        estimator.fit(X, y, sample_weight=sample_weight)
+        y_predict = estimator.predict(X)
+
+        # количество мисклассификаций
+        incorrect = (y_predict != y)
+        # ошибка эстимейтора
+        estimator_error = np.mean(np.average(incorrect, weights=sample_weight, axis=0))
+        # Усиливаем веса эстимейтора
+        estimator_weight = learning_rate * np.log((1. - estimator_error) / estimator_error)
+        # усиливаем веса объектов
+        sample_weight *= np.exp(estimator_weight * incorrect * ((sample_weight > 0) | (estimator_weight < 0)))
+
+        # Сохраняем данные итерации
+        estimator_list.append(estimator)
+        y_predict_list.append(y_predict.copy())
+        estimator_error_list.append(estimator_error.copy())
+        estimator_weight_list.append(estimator_weight.copy())
+        sample_weight_list.append(sample_weight.copy())
+
+    # конвертим в ndarray для удобства
+    estimator_list = np.asarray(estimator_list)
+    y_predict_list = np.asarray(y_predict_list)
+    estimator_error_list = np.asarray(estimator_error_list)
+    estimator_weight_list = np.asarray(estimator_weight_list)
+    sample_weight_list = np.asarray(sample_weight_list)
+    
+    #предсказания
+    preds = (np.array([np.sign((y_predict_list[:, point] * estimator_weight_list).sum()) for point in range(N)]))
+    print('Accuracy = ', (preds == y).sum() / N)
+
+    return estimator_list, estimator_weight_list, sample_weight_list
+```
 
 # Отбор информативных признаков
 ## Генетический алгоритм
