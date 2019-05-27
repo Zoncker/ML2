@@ -65,8 +65,6 @@ def AdaBoost(X, y, M=10, learning_rate=1):
     # инициализация весов
     sample_weight = np.ones(N) / N
     sample_weight_list.append(sample_weight.copy())
-
-    # For m = 1 to M
     for m in range(M):
         # Обучаем слабый классификатор
         estimator = DecisionTreeClassifier(max_depth=1, max_leaf_nodes=2)
