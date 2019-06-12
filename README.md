@@ -817,3 +817,72 @@ self.subsets_, self.best_feature_names_ = \
 Best accuracy score: 0.97
 Best subset (indices): (0, 2, 3)
 Best subset (corresponding names): ('sepal length', 'petal length', 'petal width')
+
+
+## Жадное добавление - Add
+
+- работает быстро ![](https://latex.codecogs.com/svg.latex?O%28n%5E2%29) точнее - ![](https://latex.codecogs.com/svg.latex?O%28n%28j%5E*&plus;d%29%29)
+- возможны быстрые инкрементные алгоритмы,
+Недостатки:
+- Add склонен включать в набор лишние признаки.
+Способы устранения:
+- Add-Del — чередование добавлений и удалений (см. далее);
+- поиск в ширину (см. выше)
+
+![](https://latex.codecogs.com/svg.latex?J_0%3A%3D%5Cvarnothing%20%3B%20Q%5E*%3A%3DQ%28%5Cvarnothing%29%3B%20t%3A%3D0%3B) - инициализация
+
+
+повторять
+
+
+пока ![](https://latex.codecogs.com/svg.latex?%5Cleft%20%7CJ_t%20%5Cright%20%7C%3Cn) добавлять признаки
+
+
+![](https://latex.codecogs.com/svg.latex?t%3A%3Dt&plus;1%3B) - next iter
+
+
+![](https://latex.codecogs.com/svg.latex?F*%3A%3D%5Carg%5Cmin_%7Bf%20%5Cin%20F%20%5Csetminus%20J_%7Bt-1%7D%20%7D%20Q%28J_%7Bt-1%7D%5Ccup%20%5Cleft%20%5C%7B%20f%20%5Cright%20%5C%7D%29%3B%20J_t%3A%3DJ_%7Bt-1%7D%5Ccup%20%5Cleft%20%5C%7B%20f%5E*%20%5Cright%20%5C%7D%3B) - наиболее выгодный признак добавляем в набор;
+
+
+если ![](https://latex.codecogs.com/svg.latex?Q%28J_j%29%20%3CQ%5E*%20%5Crightarrow%20j%5E*%3A%3Dj%3B%20Q%5E*%3A%3DQ%28J_j%29)
+
+
+если ![](https://latex.codecogs.com/svg.latex?j-j%5E*%20%5Cgeq%20d%20%5Crightarrow%20J_%7Bj%5E*%7D)
+	
+Best accuracy score: 0.973
+Best subset (corresponding names): ('sepal length', 'petal length', 'petal width')
+
+
+## удаление - Del
+
+
+![](https://latex.codecogs.com/svg.latex?J_0%3A%3D%5Cvarnothing%20%3B%20Q%5E*%3A%3DQ%28%5Cvarnothing%29%3B%20t%3A%3D0%3B) - инициализация
+
+
+повторять
+
+
+пока ![](https://latex.codecogs.com/svg.latex?%5Cleft%20%7C%20J_t%20%5Cright%20%7C%3E0) удалять признаки
+
+
+![](https://latex.codecogs.com/svg.latex?t%3A%3Dt&plus;1%3B) - next iter
+
+
+![](https://latex.codecogs.com/svg.latex?F*%3A%3D%5Carg%5Cmin_%7Bf%20%5Cin%20F%20%5Csetminus%20J_%7Bt-1%7D%20%7D%20Q%28J_%7Bt-1%7D%5Ccup%20%5Cleft%20%5C%7B%20f%20%5Cright%20%5C%7D%29%3B%20J_t%3A%3DJ_%7Bt-1%7D%5Ccup%20%5Cleft%20%5C%7B%20f%5E*%20%5Cright%20%5C%7D%3B) - наиболее выгодный признак добавляем в набор;
+
+
+если ![](https://latex.codecogs.com/svg.latex?Q%28J_j%29%20%3CQ%5E*%20%5Crightarrow%20j%5E*%3A%3Dj%3B%20Q%5E*%3A%3DQ%28J_j%29)
+
+
+если ![](https://latex.codecogs.com/svg.latex?j-j%5E*%20%5Cgeq%20d%20%5Crightarrow%20J_%7Bj%5E*%7D)
+
+Del
+Best accuracy score: 0.973
+Best subset (corresponding names): ('sepal length', 'petal length', 'petal width')
+
+
+
+Add-Del
+Best accuracy score: 0.973
+Best subset (corresponding names): ('sepal length', 'petal length', 'petal width')
+
